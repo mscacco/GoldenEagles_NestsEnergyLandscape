@@ -26,7 +26,9 @@ library(tidyr)
 library(amt)
 
 #set working directory 
-setwd("F:/data")
+setwd("F:/data") #setwd(.....percorso fino alla cartella condivisa)
+
+#dalla cartella condivisa in avanti 
 
 #load data and extract info about territories 
 #brood_data <- read.csv("/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/brood_data2023_grisons.csv", sep = ";")
@@ -162,42 +164,4 @@ saveRDS(df_final_q, "/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New fol
 #load df final and first part about the raster 
 df <- readRDS("F:/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/final_df_2307_quota.rds")
 
-#add variables 
-#df_crop_stack <- extract(crop_stack[[-4,]], df)
-#df_stack2 <- extract(stack_2, df)
-#
-#df <- df %>% 
-#  bind_cols(df_crop_stack, df_stack2) 
-#
-#df <- df %>% 
-#  select(-ID...10,-ID...6,-ID...4)
-
-#weights ####
-terr_vect_sf <- sf::st_as_sf(terr_vect_to_keep)
-terr_vect_sf$area_km2 <- set_units(st_area(terr_vect_sf), km^2) #calculate are of territories in km 
-summary(terr_vect_sf$area_km2)
-st_crs(terr_vect_sf)
-
-#rename projectsite_id with territory_ID
-terr_vect_sf <- terr_vect_sf %>%
-  rename(territory_id = projectsite_id )
-
-#add to final_df 
-df <- df %>%
-  left_join(terr_vect_sf %>%
-              st_drop_geometry() %>% 
-              dplyr::select(territory_id, area_km2), 
-            by = "territory_id")
-
-sort(df$area_km2)
-
-#now i need to calculate the weights 
-largesthr <-  189.76507 
-
-#assign weights to the background point according the dimension of belongs territory 
-df <- df %>%
-  mutate(weights_hr = ifelse(final_df$case == TRUE, 1, 1E6 * (largesthr) / (area_km2)), 
-         weights = ifelse(final_df$case == TRUE, 1, 1E6))
-
-#print(1E6 * 189.76507 / 52.47490)
 
