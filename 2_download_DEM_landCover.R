@@ -20,7 +20,7 @@ library(curl)
 setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder/")
 
 # Load dataset (sf object)
-model_data <- readRDS("outputData/PCA_wind_pred_2708cio.rds")
+model_data <- readRDS("outputData/final_df_2307_quota.rds")
 
 head(model_data)
 names(model_data)

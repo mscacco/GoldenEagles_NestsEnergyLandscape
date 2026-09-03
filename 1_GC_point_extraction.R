@@ -6,8 +6,7 @@
 #This script load presence data and territory boundaries to extract absence points 
 #
 #
-#Assign weight to points according to dimension of territories 
-
+#Assign weight to points according to dimension of territories ?? 
 
 
 #load libraries 
@@ -26,14 +25,14 @@ library(tidyr)
 library(amt)
 
 #set working directory 
-setwd("F:/data") #setwd(.....percorso fino alla cartella condivisa)
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder") #setwd(.....percorso fino alla cartella condivisa)
 
 #dalla cartella condivisa in avanti 
 
 #load data and extract info about territories 
 #brood_data <- read.csv("/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/brood_data2023_grisons.csv", sep = ";")
-sf_nest <- read_sf("/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/nestData_GR_onlypoints.gpkg")  %>% st_transform("EPSG:3035")
-sf_terr<- read_sf("territoriesGrisoni_Julia.gpkg") %>% st_transform("EPSG:3035")
+sf_nest <- read_sf("inputData/JuliaHatzl_nestdata/nestData_GR_onlypoints.gpkg")%>% st_transform("EPSG:3035")
+sf_terr<- read_sf("inputData/JuliaHatzl_nestdata/territoriesGrisoni_Julia.gpkg") %>% st_transform("EPSG:3035")
 
 ##load my predictors and align them together 
 #bands <- rast("F:/data/raster_layer/final_rastercuttedongrigioni/sentinel2_mean_500m_resolution_3035.tif")
@@ -158,7 +157,7 @@ df_final_vect <- vect(df_final)
 df_quota <- terra::extract(dem, df_final_vect)
 
 df_final_q <- bind_cols(df_final, df_quota)
-saveRDS(df_final_q, "/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/final_df_2307_quota.rds")
+saveRDS(df_final_q, "outputData/final_df_2307_quota.rds")
 #################################
 
 #load df final and first part about the raster 
