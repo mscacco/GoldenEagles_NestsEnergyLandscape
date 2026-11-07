@@ -33,24 +33,6 @@ setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Gold
 sf_nest <- read_sf("inputData/JuliaHatzl_nestdata/nestData_GR_onlypoints.gpkg")%>% st_transform("EPSG:3035")
 sf_terr<- read_sf("inputData/JuliaHatzl_nestdata/territoriesGrisoni_Julia.gpkg") %>% st_transform("EPSG:3035")
 
-
-#
-
-#rough <- rast("F:/data/raster_layer/roughness_30.tif")
-#slope <- rast("F:/data/raster_layer/slope_30.tif")
-#aspect <- rast("F:/data/raster_layer/aspect_30.tif") 
-#
-#distance <- rast("F:/data/raster_layer/final_rastercuttedongrigioni/distance_raster_aligned_500m_resolution_3035.tif")
-#
-#
-##stack rasters together
-#stack <- c(rough, slope, aspect,dtm)
-##stack bands dem distance
-#stack_2 <- c(distance, bands)
-#crop_stack <- crop(stack, stack_2)
-#names(crop_stack)[4] <- "dtm"
-
-
 #######presence and bg extraction #################
 #Rasterise territories and stack them with other layer since we need to extract absences from center of each cell that have not presence point  
 # Convert the shapefile to a SpatVector (terra object)
