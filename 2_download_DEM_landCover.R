@@ -17,10 +17,11 @@ library(future)
 library(future.apply)
 library(curl)
 
-setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder/")
+#setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder/")
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/")
 
 # Load dataset (sf object)
-model_data <- readRDS("outputData/final_df_2307_quota.rds")
+model_data <- readRDS("Giulia_sharedFolder/outputData/final_df_23072025_quota_forAnnotation.rds")
 
 head(model_data)
 names(model_data)
@@ -51,7 +52,7 @@ model_data$y_lv95 <- st_coordinates(model_data)[,2]
 (bbox_lv95 <- ext(model_data)*1.1)
 
 # resave model_data with new added coordinates and crs
-saveRDS(model_data, "outputData/PCA_wind_pred_2708cio_allCRS.rds")
+saveRDS(model_data, "Giulia_sharedFolder/outputData/df_all_coordinates_forAnnotation.rds")
 
 
 #__________________________________
@@ -65,7 +66,7 @@ bbox_lv95
 
 # The urls of the >10000 1km tiles to download are stored in the inputData folder, but the tiles will be downloaded on an external hard drive
 output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
-urls <- read.csv("inputData/environmental_data/downloadLinks_tilesGrisons_swisstopoSwissalti3d_modelDataExt.csv")[,1]
+urls <- read.csv("Giulia_sharedFolder/inputData/environmental_data/downloadLinks_tilesGrisons_swisstopoSwissalti3d_modelDataExt.csv")[,1]
 
 # if only partially downloaded run this to continue download
 table(basename(urls) %in% list.files(output_fld, pattern="tif"))
@@ -98,7 +99,7 @@ files <- future_lapply(urls, downloadTile, output_fld)
 # We use the bbox in lat long to download the land cover from the planetary computer via rstac
 bbox_wgs84 <- as.vector(bbox_wgs84)[c("xmin", "ymin", "xmax", "ymax")]
 
-output_dir <- "inputData/environmental_data/LandCover_10m_PlanComp/"
+output_dir <- "Giulia_sharedFolder/inputData/environmental_data/LandCover_10m_PlanComp/"
 
 stac_source <- stac("https://planetarycomputer.microsoft.com/api/stac/v1")
 collections_query <- stac_source |> collections()
@@ -147,3 +148,5 @@ plot(r)
 # legend available directly at https://planetarycomputer.microsoft.com/dataset/io-lulc-annual-v02
 # and saved as txt file:
 (leg <- read.table(paste0(output_dir, "lulc_v02_legend.txt"), sep=",", header = T))
+
+
