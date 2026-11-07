@@ -33,10 +33,11 @@ windDir_from_deg <- function(u, v) {
 #_____________
 
 
-setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder/")
+setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder")
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
 
 # Load dataset (sf object)
-model_data <- readRDS("outputData/PCA_wind_pred_2708cio_allCRS.rds")
+model_data <- readRDS("outputData/df_all_coordinates_forAnnotation.rds")
 
 
 #____________________
@@ -89,7 +90,6 @@ table(model_data_lulc$lulc_100m)
 table(model_data_lulc$lcClass_100m)
 
 saveRDS(model_data_lulc, "outputData/PCA_wind_pred_2708cio_allCRS_lulc.rds")
-
 
 #____________________________________
 # Derive and annotate topography ####
@@ -163,5 +163,7 @@ class(model_data) <- setdiff(class(model_data), c("tbl_df", "tbl"))
 
 # save model_data with the added variables
 saveRDS(model_data, file="outputData/PCA_wind_pred_2708cio_allCRS_lulc_topo.rds")
+
+
 
 

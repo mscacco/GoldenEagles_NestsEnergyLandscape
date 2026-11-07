@@ -17,6 +17,7 @@ library(mapview)
 library(data.table)
 
 setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder/")
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
 
 
 #_______________________
@@ -41,7 +42,7 @@ range(allTimestamps)
 # Associate annotation times to dataset ####
 
 # Import presence absence
-presAbs <- readRDS("inputData/final_df_23072025_quota_forAnnotation.rds")
+presAbs <- readRDS("outputData/final_df_23072025_quota_forAnnotation.rds")
 
 # Project to lat long decimal wgs84
 presAbs_wgs84 <- st_transform(presAbs, st_crs("EPSG:4326"))

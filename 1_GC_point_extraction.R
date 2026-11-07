@@ -4,9 +4,8 @@
 
 
 #This script load presence data and territory boundaries to extract absence points 
-#
-#
-#Assign weight to points according to dimension of territories ?? 
+#Annotation elevation from Digital Terrain Model
+
 
 
 #load libraries 
@@ -25,7 +24,7 @@ library(tidyr)
 library(amt)
 
 #set working directory 
-setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder") #setwd(.....percorso fino alla cartella condivisa)
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder/") #setwd(.....percorso fino alla cartella condivisa)
 
 #dalla cartella condivisa in avanti 
 
@@ -34,11 +33,9 @@ setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Gold
 sf_nest <- read_sf("inputData/JuliaHatzl_nestdata/nestData_GR_onlypoints.gpkg")%>% st_transform("EPSG:3035")
 sf_terr<- read_sf("inputData/JuliaHatzl_nestdata/territoriesGrisoni_Julia.gpkg") %>% st_transform("EPSG:3035")
 
-##load my predictors and align them together 
-#bands <- rast("F:/data/raster_layer/final_rastercuttedongrigioni/sentinel2_mean_500m_resolution_3035.tif")
-#bands_1 <- bands[[1]]
+
 #
-#dtm <- rast("F:/data/raster_layer/dem_m.tif")
+
 #rough <- rast("F:/data/raster_layer/roughness_30.tif")
 #slope <- rast("F:/data/raster_layer/slope_30.tif")
 #aspect <- rast("F:/data/raster_layer/aspect_30.tif") 
@@ -80,7 +77,13 @@ plot(terr_vect_to_keep)
 #get the extension from sf_terr
 extension <- ext(terr_vect_to_keep)
 
-#create the raster template 
+#create the raster template, load a raster from My study area
+f <- "inputData/environmental_data/Raster template for absences/sentinel_grigioni.tif"
+file.size(f) / 1e9   # size in GB
+bands <- rast("C:/Users/Giulia/OneDrive - Swansea University/Documents/SSD kami/data/ecmwind/aspect_30.tif")
+plot(bands_1)
+
+#bands_1 <- bands[[1]]
 r_template <- bands[[1]]
 values(r_template) <- NA #assign NA values 
 
@@ -153,14 +156,13 @@ df_final <- bind_rows(presence_point, background_point) #27909
 
 df_final_vect <- vect(df_final)
 
+#add info from DEM
+dtm <- terra::rast("inputData/environmental_data/dtm_elev_eumap_epsg3035_v0.3_cropAlps_laea.tif")
 #extract the quota just in case it's possible to annotate at the nest level
 df_quota <- terra::extract(dem, df_final_vect)
 
 df_final_q <- bind_cols(df_final, df_quota)
-saveRDS(df_final_q, "outputData/final_df_2307_quota.rds")
+saveRDS(df_final_q, "outputData/final_df_23072025_quota_forAnnotation.rds")
 #################################
-
-#load df final and first part about the raster 
-df <- readRDS("F:/script/golden_eagle_MSc_old/golden_eagle_MSc/Paper/New folder/final_df_2307_quota.rds")
 
 
