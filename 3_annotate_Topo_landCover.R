@@ -89,7 +89,9 @@ model_data_lulc <- dplyr::rename(model_data_lulc, lcClass_100m = class)
 table(model_data_lulc$lulc_100m)
 table(model_data_lulc$lcClass_100m)
 
-saveRDS(model_data_lulc, "outputData/PCA_wind_pred_2708cio_allCRS_lulc.rds")
+#When we run it again save as df_wind_pred_allCRS_lulc.rds
+#saveRDS(model_data_lulc, "outputData/df_wind_pred_allCRS_lulc.rds") #before was PCA_wind_pred_2708cio_allCRS_lulc.rds
+
 
 #____________________________________
 # Derive and annotate topography ####
