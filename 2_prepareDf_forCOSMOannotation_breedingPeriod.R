@@ -42,10 +42,11 @@ range(allTimestamps)
 # Associate annotation times to dataset ####
 
 # Import presence absence
-presAbs <- readRDS("outputData/final_df_23072025_quota_forAnnotation.rds")
+presAbs <- readRDS("outputData/final_df_500m_quota_forAnnotation.rds")
 
 # Project to lat long decimal wgs84
-presAbs_wgs84 <- st_transform(presAbs, st_crs("EPSG:4326"))
+presAbs_sf    <- st_as_sf(presAbs, coords = c("x", "y"), crs = 3035, remove = FALSE)
+presAbs_wgs84 <- st_transform(presAbs_sf, st_crs("EPSG:4326"))
 mapview(presAbs_wgs84)
 
 presAbs_wgs84$x <- st_coordinates(presAbs_wgs84$geometry)[,1]
@@ -74,6 +75,7 @@ nrow(PAdf_time) == nrow(PAdf) * length(allTimestamps)
 length(unique(PAdf_time$timestamp))
 range(PAdf_time$timestamp)
 unique(table(PAdf_time$timestamp))
+
 
 write.csv(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.csv", row.names = F)
 saveRDS(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.rds")

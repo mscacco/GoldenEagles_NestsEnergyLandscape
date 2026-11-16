@@ -12,6 +12,7 @@ library(ggplot2)
 library(mapview)
 library(dplyr)
 
+
 #_____________
 # Define own function to calculate orographic uplift
 oroUplift <- function(u, v, slope_rad, aspect_rad) {
@@ -31,7 +32,6 @@ windDir_from_deg <- function(u, v) {
   return((WD.deg + 180) %% 360) #reverse from blowing "to" to blowing FROM, as 0-360. The %% 360 makes sure the results stays within 0-360
 }
 #_____________
-
 
 setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder")
 setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
@@ -97,7 +97,8 @@ table(model_data_lulc$lcClass_100m)
 # Derive and annotate topography ####
 
 # import the data annotated with the land cover
-model_data <- readRDS("outputData/PCA_wind_pred_2708cio_allCRS_lulc.rds")
+model_data <- readRDS("outputData/df_wind_pred_allCRS_lulc.rds") #correct input  #old one ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
+#model_data <- readRDS("outputData/")
 
 # load all tiles from HD to R as a virtual raster (does NOT load all into memory)
 output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
