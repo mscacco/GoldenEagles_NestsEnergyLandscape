@@ -2,8 +2,8 @@
 # Annotate topographic and land cover variables ####
 #___________________________________________________
 
-# This script derives and aggregates topographic layers from 2 m pixels to 200 m and extract summary information to highlight the presence of cliffs and surface structures
-# It annotates both topographic and land cover data to the dataset
+# This script derives and aggregates topographic layers from 2 m pixels to 100 m and extract summary information to highlight the presence of cliffs and surface structures
+# It annotates both topographic, land cover, and distance from territory data to the dataset
 # computes derived variables such as orographic uplift and vertical position of nest in territory
 
 library(sf)
@@ -11,7 +11,6 @@ library(terra)
 library(ggplot2)
 library(mapview)
 library(dplyr)
-
 
 #_____________
 # Define own function to calculate orographic uplift
@@ -33,10 +32,14 @@ windDir_from_deg <- function(u, v) {
 }
 #_____________
 
+
+
+#_____________
+
 setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder")
 setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
 
-# Load dataset (sf object)
+# Load dataset (sf object) with all CRS
 model_data <- readRDS("outputData/df_all_coordinates_forAnnotation.rds")
 
 
@@ -70,7 +73,7 @@ pct_bare_100m <- aggregate(lucl_10m, fact = 10,
 # save new layers
 lulc_stack_100m <- c(lulc_100m, pct_trees_100m, pct_build_100m, pct_bare_100m)
 names(lulc_stack_100m) <- c("lulc_100m", "pct_trees_100m", "pct_build_100m", "pct_bare_100m")
-writeRaster(lulc_stack_100m, "inputData/environmental_data/LandCover_10m_PlanComp/lulc_derived100m_pcts.tif")
+writeRaster(lulc_stack_100m, "inputData/environmental_data/LandCover_10m_PlanComp/lulc_derived100m_pcts.tif", overwrite=TRUE)
 
 # annotate data with info from all layers
 model_data_prj <- st_transform(model_data, crs(lucl_10m))
@@ -83,25 +86,26 @@ table(model_data_lulc$lulc_100m) # they are very similar, we retain the one at 1
 
 
 # add legend and save
-length(unique(model_data_lulc$ID_Tom))==nrow(model_data_lulc)
+length(unique(model_data_lulc$ID_Tom))==nrow(model_data_lulc) #we have to check this 
 model_data_lulc <- merge(model_data_lulc, leg, by.x="lulc_100m", by.y="value")
 model_data_lulc <- dplyr::rename(model_data_lulc, lcClass_100m = class)
 table(model_data_lulc$lulc_100m)
 table(model_data_lulc$lcClass_100m)
 
-#When we run it again save as df_wind_pred_allCRS_lulc.rds
-#saveRDS(model_data_lulc, "outputData/df_wind_pred_allCRS_lulc.rds") #before was PCA_wind_pred_2708cio_allCRS_lulc.rds
+#When we run it again save as df_allCRS_lulc.rds
+saveRDS(model_data_lulc, "outputData/df_allCRS_lulc.rds") #before was PCA_wind_pred_2708cio_allCRS_lulc.rds
 
 
 #____________________________________
 # Derive and annotate topography ####
 
 # import the data annotated with the land cover
-model_data <- readRDS("outputData/df_wind_pred_allCRS_lulc.rds") #correct input  #old one ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
+model_data <- readRDS("outputData/df_allCRS_lulc.rds") #correct input  #old one ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
 #model_data <- readRDS("outputData/")
 
 # load all tiles from HD to R as a virtual raster (does NOT load all into memory)
 output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
+output_fld <- "inputData/environmental_data/DEM_Swisstopo_Grisons_2m/"
 tiles <- list.files(output_fld, pattern = "\\.tif", full.names = TRUE)
 dem_vrt <- terra::vrt(tiles)
 
@@ -116,12 +120,30 @@ slope_2m <- terra::terrain(dem_vrt, v = "slope", unit = "degrees")
 slope_max_100 <- terra::aggregate(slope_2m, fact = 50, fun = max, na.rm = TRUE)
 dem_max_100 <- terra::aggregate(dem_vrt, fact = 50, fun = max, na.rm = TRUE)
 
+#dem_mean_10m
+#slope_10
+#aspect_10
+
+
+#slope_10m
+#slope_max_10
+#dem_max_10
+
+
 # bind all layers and extract all topographic variables at point location
+
+#2m
 topo_2m <- c(dem_vrt, slope_2m)
 names(topo_2m) <- c("dem_2m","slope_2m")
 vals_2m <- terra::extract(topo_2m, model_data)
 model_data <- cbind(model_data, vals_2m[,-1])
 
+#10m
+topo_10m
+
+
+
+#100m
 topo_100m <- c(slope_100, aspect_100, dem_mean_100, dem_max_100, slope_max_100)
 names(topo_100m) <- c("slope_100m", "aspect_100m","dem_mean_100m","dem_max_100m", "slope_max_100m")
 vals_100m <- terra::extract(topo_100m, model_data)
@@ -134,6 +156,13 @@ model_data$OroUplift_100m <- oroUplift(u = model_data$U_10M_median,
                                        aspect_rad = (model_data$aspect_100m * pi / 180)) # in rad between 0 and 2pi
 model_data$windDir_from_100m <- windDir_from_deg(u = model_data$U_10M_median,
                                                  v = model_data$V_10M_median)
+
+
+
+#calculate orographic uplift at 10 m
+
+#adapt previous rows!!!
+
 
 ggplot(model_data, aes(x = aspect_100m, y = windDir_from_100m, color = OroUplift_100m)) +
   geom_point(size=1) +
@@ -162,6 +191,14 @@ model_data <- model_data %>%
   ) %>%
   ungroup()
 class(model_data) <- setdiff(class(model_data), c("tbl_df", "tbl"))
+
+
+#_________________________
+#Distance from territory boundaries 
+
+
+#ADD CODE!!! 
+
 
 
 # save model_data with the added variables
