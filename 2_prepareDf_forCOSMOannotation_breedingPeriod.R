@@ -24,24 +24,24 @@ setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Gold
 # Define timesteps ####
 
 # Define the breeding period
-breedingPeriod <- as.Date(c("01-05-2023","30-09-2023"), format="%d-%m-%Y")
-
-# Make a sequence of all days within this period
-allDays <- seq(breedingPeriod[1], breedingPeriod[2], by=3) # Every third day, to reduce computation time
-# Define hours of interest (sunrise to sunset, three time points per day to reduce computation time)
-allTimes <- paste0(sprintf("%02d", c(7,13,19)), ":00") #make sure all have 2 digits (leading 0s)
-
-# All combinations of dates and times as POSIXct object
-allTimestamps <- as.POSIXct(apply(expand.grid(allDays, allTimes), 1, paste, collapse=" "),
-                            format="%Y-%m-%d %H:%M", tz="CET")
-allTimestamps <- with_tz(allTimestamps, "UTC")
-length(allTimestamps)
-range(allTimestamps)
+#breedingPeriod <- as.Date(c("01-05-2023","30-09-2023"), format="%d-%m-%Y")
+#
+## Make a sequence of all days within this period
+#allDays <- seq(breedingPeriod[1], breedingPeriod[2], by=3) # Every third day, to reduce computation time
+## Define hours of interest (sunrise to sunset, three time points per day to reduce computation time)
+#allTimes <- paste0(sprintf("%02d", c(7,13,19)), ":00") #make sure all have 2 digits (leading 0s)
+#
+## All combinations of dates and times as POSIXct object
+#allTimestamps <- as.POSIXct(apply(expand.grid(allDays, allTimes), 1, paste, collapse=" "),
+#                            format="%Y-%m-%d %H:%M", tz="CET")
+#allTimestamps <- with_tz(allTimestamps, "UTC")
+#length(allTimestamps)
+#range(allTimestamps)
 
 #___________________________________________
-# Associate annotation times to dataset ####
+# Extract coordinate on wgs84 for COSMO annotation ####
 
-# Import presence absence
+# Import presence absence 
 presAbs <- readRDS("outputData/final_df_500m_quota_forAnnotation.rds")
 
 # Project to lat long decimal wgs84
@@ -56,6 +56,7 @@ PAdf <- as.data.frame(PAdf[order(PAdf$territory_id, -PAdf$case),])
 head(PAdf)
 table(PAdf$case)
 
+
 # Explore:
 # N of presences per territory (between 1 and 14 eagles' nests per territory)
 table(PAdf[PAdf$case==1,"territory_id"])
@@ -65,19 +66,25 @@ length(unique(PAdf$territory_id))
 # N of points per territory (between 70 and > 700 points)
 range(sapply(split(PAdf, PAdf$territory_id), nrow))
 
-# Repeat points for each timestamp during the breeding period
-nrow(PAdf) * length(allTimestamps) # expected number of rows of final dataset
-
-PAdf_time <- as.data.frame(rbindlist(lapply(allTimestamps, function(time){
-  return(cbind(PAdf, timestamp = time))
-})))
-nrow(PAdf_time) == nrow(PAdf) * length(allTimestamps) 
-length(unique(PAdf_time$timestamp))
-range(PAdf_time$timestamp)
-unique(table(PAdf_time$timestamp))
+write.csv(PAdf, file = "outputData/finaldataset_backgandpresence_forAnnotation_Nov2026.csv", row.names = F)
+saveRDS(PAdf, file = "outputData/finaldataset_backgandpresence_forAnnotation_Nov2026.rds")
 
 
-write.csv(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.csv", row.names = F)
-saveRDS(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.rds")
+#When tom confirms everything is fine delete this part 
+#
+## Repeat points for each timestamp during the breeding period
+#nrow(PAdf) * length(allTimestamps) # expected number of rows of final dataset
+#
+#PAdf_time <- as.data.frame(rbindlist(lapply(allTimestamps, function(time){
+#  return(cbind(PAdf, timestamp = time))
+#})))
+#nrow(PAdf_time) == nrow(PAdf) * length(allTimestamps) 
+#length(unique(PAdf_time$timestamp))
+#range(PAdf_time$timestamp)
+#unique(table(PAdf_time$timestamp))
 
-# the final annotated dataset will be named "ForGiulia_backgandpresence_timeSteps_forAnnotation_Jul2025_annotated.csv"
+
+#write.csv(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.csv", row.names = F)
+#saveRDS(PAdf_time, file = "outputData/finaldataset_backgandpresence_timeSteps_forAnnotation_Jul2025.rds")
+#
+## the final annotated dataset will be named "ForGiulia_backgandpresence_timeSteps_forAnnotation_Jul2025_annotated.csv"
