@@ -21,7 +21,8 @@ library(curl)
 setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
 
 # Load dataset (sf object)
-model_data <- readRDS("outputData/final_df_23072025_quota_forAnnotation.rds")
+model_data <- readRDS("outputData/final_df_500m_quota_forAnnotation.rds")
+model_data    <- st_as_sf(model_data, coords = c("x", "y"), crs = 3035, remove = FALSE)
 
 head(model_data)
 names(model_data)
@@ -54,6 +55,8 @@ model_data$y_lv95 <- st_coordinates(model_data)[,2]
 # resave model_data with new added coordinates and crs
 saveRDS(model_data, "outputData/df_all_coordinates_forAnnotation.rds")
 
+model_data<- readRDS("outputData/df_all_coordinates_forAnnotation.rds")
+
 
 #__________________________________
 # Download Swisstopo DEM tiles ####
@@ -65,7 +68,8 @@ saveRDS(model_data, "outputData/df_all_coordinates_forAnnotation.rds")
 bbox_lv95
 
 # The urls of the >10000 1km tiles to download are stored in the inputData folder, but the tiles will be downloaded on an external hard drive
-output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
+#output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
+output_fld <- "inputData/environmental_data/DEM_Swisstopo_Grisons_2m/"
 urls <- read.csv("inputData/environmental_data/downloadLinks_tilesGrisons_swisstopoSwissalti3d_modelDataExt.csv")[,1]
 
 # if only partially downloaded run this to continue download
@@ -86,12 +90,44 @@ downloadTile <- function(u, output_dir) {
 }
 
 # Run in Terminal
-plan(multicore, workers = future::availableCores() - 2)
+future::plan(multicore, workers = future::availableCores() - 2)
 files <- future_lapply(urls, downloadTile, output_fld)
 # to check for download errors
-# files <- unlist(files)
-# files <- files[!is.na(files)]
+files <- unlist(files)
+files <- files[!is.na(files)]
 
+#__________________________
+#Check if all tiles contain informations ####
+library(terra)
+
+# 1. Every URL has a matching file
+all_urls <- read.csv("inputData/environmental_data/downloadLinks_tilesGrisons_swisstopoSwissalti3d_modelDataExt.csv")[,1]
+tifs <- file.path(output_fld, basename(all_urls))
+table(file.exists(tifs))   # all TRUE (12250)
+
+# 2. Look for suspiciously small files (truncated / error pages)
+sz <- file.size(tifs)
+summary(sz)
+small <- tifs[sz < quantile(sz, 0.01) * 0.5]   # adjust threshold after looking at summary
+small
+
+# 3. Try to open each tile and read a value (catches corrupt files)
+bad <- future_lapply(tifs, function(f) {
+  ok <- tryCatch({
+    r <- rast(f)
+    v <- r[1, 1]            # forces a real read from the file
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) f else NA
+})
+bad <- na.omit(unlist(bad))
+bad   # re-download these: file.remove(bad), then rerun your download loop
+
+vrt_file <- file.path(output_fld, "grisons_dem_2m.vrt")
+dem <- vrt(tifs, vrt_file, overwrite = TRUE)
+dem
+plot(dem, maxcell = 1e6)        # quick look, downsampled
+lines(as.polygons(bbox_lv95), col = "red")
 
 #__________________________
 # Download Land Cover ####
