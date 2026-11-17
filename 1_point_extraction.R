@@ -83,6 +83,7 @@ points(pres$x, pres$y, pch = 16, cex = 0.5, col = "red")
 
 # ---- 6. Elevation from DTM ---------------------------------------------------
 dtm <- rast("inputData/environmental_data/dtm_elev_eumap_epsg3035_v0.3_cropAlps_laea.tif")
+plot(dtm)
 pts <- vect(df_final, geom = c("x", "y"), crs = "EPSG:3035")
 df_final[, elev := extract(dtm, project(pts, crs(dtm)), ID = FALSE)[[1]]]
 
