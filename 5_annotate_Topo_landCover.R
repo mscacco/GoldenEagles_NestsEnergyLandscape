@@ -33,9 +33,6 @@ windDir_from_deg <- function(u, v) {
 #_____________
 
 
-
-#_____________
-
 setwd("/home/martina/ownCloud/Martina/ProgettiVari/GoldenEagles_COSMO/Nests_EnergyLandscape_Giulia/Giulia_sharedFolder")
 setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
 
@@ -92,7 +89,7 @@ model_data_lulc <- dplyr::rename(model_data_lulc, lcClass_100m = class)
 table(model_data_lulc$lulc_100m)
 table(model_data_lulc$lcClass_100m)
 
-#When we run it again save as df_allCRS_lulc.rds
+#save
 saveRDS(model_data_lulc, "outputData/df_allCRS_lulc.rds") #before was PCA_wind_pred_2708cio_allCRS_lulc.rds
 
 
@@ -100,8 +97,7 @@ saveRDS(model_data_lulc, "outputData/df_allCRS_lulc.rds") #before was PCA_wind_p
 # Derive and annotate topography ####
 
 # import the data annotated with the land cover
-model_data <- readRDS("outputData/df_allCRS_lulc.rds") #correct input  #old one ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
-#model_data <- readRDS("outputData/")
+model_data <- readRDS("outputData/df_allCRS_lulc.rds") #before was ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
 
 # load all tiles from HD to R as a virtual raster (does NOT load all into memory)
 output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
@@ -109,7 +105,7 @@ output_fld <- "inputData/environmental_data/DEM_Swisstopo_Grisons_2m/"
 tiles <- list.files(output_fld, pattern = "\\.tif", full.names = TRUE)
 dem_vrt <- terra::vrt(tiles)
 
-# Calculate 4 complementary topographic metrics: 
+# Calculate 4 complementary topographic metrics (100m): 
 # Broad-scale slope (1) and aspect (2), calculated from a 100 m DEM obtained by aggregating the original 2 m DEM using the mean
 dem_mean_100 <- terra::aggregate(dem_vrt, fact = 50, fun = mean, na.rm = TRUE)
 slope_100 <- terra::terrain(dem_mean_100, v = "slope", unit = "degrees")
@@ -120,15 +116,15 @@ slope_2m <- terra::terrain(dem_vrt, v = "slope", unit = "degrees")
 slope_max_100 <- terra::aggregate(slope_2m, fact = 50, fun = max, na.rm = TRUE)
 dem_max_100 <- terra::aggregate(dem_vrt, fact = 50, fun = max, na.rm = TRUE)
 
-#dem_mean_10m
-#slope_10
-#aspect_10
+# Calculate 4 complementary topographic metrics (10m): 
+# Broad-scale slope (1) and aspect (2), calculated from a 10 m DEM obtained by aggregating the original 2 m DEM using the mean
+dem_mean_10 <- terra::aggregate(dem_vrt, fact = 5, fun = mean, na.rm = TRUE)
+slope_10 <- terra::terrain(dem_mean_10m, v = "slope", unit = "degrees")
+aspect_10 <- terra::terrain(dem_mean_10m, v = "aspect", unit = "degrees")
 
-
-#slope_10m
-#slope_max_10
-#dem_max_10
-
+# Fine-scale terrain ruggdeness, calculated as the maximum dem (3) and maximum slope (4) within 10 m windows based on dem at 2 m and slope computed at 2 m resolution.
+slope_max_10 <- terra::aggregate(slope_2m, fact = 5, fun = max, na.rm = TRUE)
+dem_max_10 <- terra::aggregate(dem_vrt, fact = 5, fun = max, na.rm = TRUE)
 
 # bind all layers and extract all topographic variables at point location
 
@@ -139,9 +135,9 @@ vals_2m <- terra::extract(topo_2m, model_data)
 model_data <- cbind(model_data, vals_2m[,-1])
 
 #10m
-topo_10m
-
-
+topo_10m <- c(slope_10,aspect_10, dem_mean_10, dem_max_10, slope_max_10)
+names(topo_10m) <- c("slope_10m", "aspect_10m", "dem_mean_10m", "dem_max_10m", "slope_max_10m")
+vals_10m <- terra::extract(topo_10m, model_data)
 
 #100m
 topo_100m <- c(slope_100, aspect_100, dem_mean_100, dem_max_100, slope_max_100)
@@ -149,34 +145,6 @@ names(topo_100m) <- c("slope_100m", "aspect_100m","dem_mean_100m","dem_max_100m"
 vals_100m <- terra::extract(topo_100m, model_data)
 model_data <- cbind(model_data, vals_100m[,-1])
 
-# calculate orographic uplift at 100 m
-model_data$OroUplift_100m <- oroUplift(u = model_data$U_10M_median,
-                                       v = model_data$V_10M_median,
-                                       slope_rad = (model_data$slope_100m * pi / 180), # in rad
-                                       aspect_rad = (model_data$aspect_100m * pi / 180)) # in rad between 0 and 2pi
-model_data$windDir_from_100m <- windDir_from_deg(u = model_data$U_10M_median,
-                                                 v = model_data$V_10M_median)
-
-
-
-#calculate orographic uplift at 10 m
-
-#adapt previous rows!!!
-
-
-ggplot(model_data, aes(x = aspect_100m, y = windDir_from_100m, color = OroUplift_100m)) +
-  geom_point(size=1) +
-  scale_color_gradient2(midpoint = 0) +
-  coord_equal() +
-  labs(x = "Slope aspect (degrees)",y = "Wind direction FROM (degrees)",fill = "w_oro (m/s)") +
-  theme_minimal()
-
-delta <- ((model_data$windDir_from_100m - model_data$aspect_100m + 180) %% 360) - 180
-ggplot(model_data, aes(x = delta, y = OroUplift_100m)) +
-  geom_point(alpha = 0.05) +
-  geom_smooth() +
-  theme_minimal() +
-  labs(x = "Wind direction - aspect angular difference (deg)")
 
 # calculate vertical distance of each nest presence/absence to the median elevation of the territory
 table(model_data$territory_ID)
@@ -202,7 +170,7 @@ class(model_data) <- setdiff(class(model_data), c("tbl_df", "tbl"))
 
 
 # save model_data with the added variables
-saveRDS(model_data, file="outputData/PCA_wind_pred_2708cio_allCRS_lulc_topo.rds")
+saveRDS(model_data, file="outputData/model_data_allCRS_lulc_topo_dist.rds")
 
 
 
