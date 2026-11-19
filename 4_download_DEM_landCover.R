@@ -55,9 +55,6 @@ model_data$y_lv95 <- st_coordinates(model_data)[,2]
 # resave model_data with new added coordinates and crs
 saveRDS(model_data, "outputData/df_all_coordinates_forAnnotation.rds")
 
-model_data<- readRDS("outputData/df_all_coordinates_forAnnotation.rds")
-
-
 #__________________________________
 # Download Swisstopo DEM tiles ####
 
@@ -100,29 +97,11 @@ files <- files[!is.na(files)]
 #Check if all tiles contain informations ####
 library(terra)
 
-# 1. Every URL has a matching file
 all_urls <- read.csv("inputData/environmental_data/downloadLinks_tilesGrisons_swisstopoSwissalti3d_modelDataExt.csv")[,1]
 tifs <- file.path(output_fld, basename(all_urls))
 table(file.exists(tifs))   # all TRUE (12250)
 
-# 2. Look for suspiciously small files (truncated / error pages)
-sz <- file.size(tifs)
-summary(sz)
-small <- tifs[sz < quantile(sz, 0.01) * 0.5]   # adjust threshold after looking at summary
-small
-
-# 3. Try to open each tile and read a value (catches corrupt files)
-bad <- future_lapply(tifs, function(f) {
-  ok <- tryCatch({
-    r <- rast(f)
-    v <- r[1, 1]            # forces a real read from the file
-    TRUE
-  }, error = function(e) FALSE)
-  if (!ok) f else NA
-})
-bad <- na.omit(unlist(bad))
-bad   # re-download these: file.remove(bad), then rerun your download loop
-
+#plot
 vrt_file <- file.path(output_fld, "grisons_dem_2m.vrt")
 dem <- vrt(tifs, vrt_file, overwrite = TRUE)
 dem
@@ -148,7 +127,6 @@ collections_id[collections_title == "10m Annual Land Use Land Cover (9-class) V2
 # "10m Annual Land Use Land Cover (9-class) V2"
 # https://planetarycomputer.microsoft.com/api/stac/v1/collections/io-lulc-annual-v02
 
-
 stac_query <- stac_search(
   q = stac_source, # Stac query object
   collections = "io-lulc-annual-v02",
@@ -167,6 +145,9 @@ signed_stac_query <- items_sign(
 signed_urls <- assets_url(signed_stac_query)
 
 # It is only one tile, the first file is a raster and the second is the metadata
+options(timeout = 3600)
+getOption("timeout")   # should now print 3600
+
 download.file(
   url = signed_urls[1],
   destfile = paste0(output_dir, "lulc_v02_2023.tif"),   
