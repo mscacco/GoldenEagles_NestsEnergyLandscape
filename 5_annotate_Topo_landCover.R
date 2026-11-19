@@ -100,7 +100,7 @@ saveRDS(model_data_lulc, "outputData/df_allCRS_lulc.rds") #before was PCA_wind_p
 model_data <- readRDS("outputData/df_allCRS_lulc.rds") #before was ( PCA_wind_pred_2708cio_allCRS_lulc.rds)
 
 # load all tiles from HD to R as a virtual raster (does NOT load all into memory)
-output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
+#output_fld <- "/media/martina/Intenso/DEM_Swisstopo_Grisons_2m/"
 output_fld <- "inputData/environmental_data/DEM_Swisstopo_Grisons_2m/"
 tiles <- list.files(output_fld, pattern = "\\.tif", full.names = TRUE)
 dem_vrt <- terra::vrt(tiles)
@@ -163,6 +163,11 @@ class(model_data) <- setdiff(class(model_data), c("tbl_df", "tbl"))
 
 #_________________________
 #Distance from territory boundaries 
+
+dem_dist <- terra::vrt(dist_rast.tif)
+names(dem_dist) <- c("")
+dist_2m <- terra::extract(dem_dist, model_data)
+model_data <- cbind(model_data, dist_2m[,]) #check 
 
 
 #ADD CODE!!! 
