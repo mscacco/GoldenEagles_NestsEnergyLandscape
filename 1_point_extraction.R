@@ -7,6 +7,10 @@ library(sf)
 library(terra)
 library(data.table)
 
+#set working directory 
+setwd("C:/Users/Giulia/Google Drive Streaming/My Drive/Paper nest selection Goldeneagle/GoldenEagles_NestsEnergyLandscape/Giulia_sharedFolder")
+
+
 res_m <- 500   # grid resolution in metres (old dataset used ~497.94 m)
 
 # ---- 1. Load data -------------------------------------------------------------
